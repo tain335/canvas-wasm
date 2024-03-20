@@ -72,7 +72,7 @@ pub unsafe extern "C" fn new_canvas_pattern_from_canvas(cx: *mut Context2D, repe
     let dims = (*cx).bounds.size();
     let stamp = Stamp{
       image:None,
-      pict:(*cx).get_picture(),
+      pict:(*cx).get_picture(None),
       dims,
       repeat,
       matrix:Matrix::new_identity()

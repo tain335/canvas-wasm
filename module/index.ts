@@ -4,7 +4,7 @@ export * from './path2d';
 
 export function initWasmBridge() {
   return new Promise((resolve, reject)=> {
-    createRustSkiaModule().then((module) => {
+    createCanvasWasmModule().then((module) => {
       resolve(registerWasmBridge(module))
     }).catch((err)=> {
       reject(err)

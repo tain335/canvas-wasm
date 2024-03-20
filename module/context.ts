@@ -14,8 +14,6 @@ type FillRule = "nonzero" | "evenodd";
 
 type Style = string | CanvasPattern | CanvasGradient;
 
-
-
 type State = {
   fillStyle: Style | null;
   strokeStyle: Style | null;
@@ -289,10 +287,10 @@ export class Context2D extends Raw {
     // set feature
     const variantObj = parseVariant(variant)
     const featureMap = new Map<string, "on" | "off" | number>();
-    variantObj.features.on.for((f: string)=> {
+    variantObj.features.on?.forEach((f: string)=> {
       featureMap.set(f, "on");
     });
-    variantObj.features.off.for((f: string)=> {
+    variantObj.features.off?.forEach((f: string)=> {
       featureMap.set(f,  "off");
     });
     Object.keys(variantObj).forEach((key)=> {
@@ -585,6 +583,12 @@ export class Context2D extends Raw {
     this.bridge._rotate(this.raw(), angle);
   }
 
+  translate(x: number, y: number) {
+    const arr = new JsF32Array(2);
+    arr.push(x, y);
+    this.bridge._translate(this.raw(), arr.raw());
+  }
+
   roundRect(x: number, y: number, w: number, h: number, r: number | number[] | DOMPoint[] | DOMPoint) {
     let radii = parseCornerRadii(r);
     if (radii){
@@ -601,7 +605,7 @@ export class Context2D extends Raw {
     this.stack.push(Object.assign({}, this.currentState()));
   }
 
-  retore() {
+  restore() {
     this.bridge._restore(this.raw());
     if(this.stack.length !== 1) {
       this.stack.pop();
@@ -645,5 +649,19 @@ export class Context2D extends Raw {
     const arr = new JsF32Array(6);
     arr.push(a, b, c, d, e, f);
     this.bridge._transform(this.raw(), arr.raw());
+  }
+
+  setSize(w: number, h: number) {
+    const arr = new JsF32Array(2);
+    arr.push(w, h);
+    this.bridge._set_size(this.raw(), arr.raw());
+  }
+
+  getSize() {
+    const size = JsF32Array.fromPtr(this.bridge._getSize(this.raw())).toArray()
+    return {
+      width: size[0],
+      height: size[1]
+    }
   }
 }

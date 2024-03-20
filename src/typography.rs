@@ -520,7 +520,7 @@ impl FontLibrary{
     }
 
     let mut collection = FontCollection::new();
-    collection.set_default_font_manager(FontMgr::new(), None);
+    collection.set_default_font_manager(FontMgr::new(), Some("_default"));
     collection.set_asset_font_manager(Some(assets.into()));
     self.collection = collection;
     self.collection_cache.drain();
@@ -597,7 +597,7 @@ impl FontLibrary{
             dynamic.register_typeface(face, alias);
 
             let mut collection = FontCollection::new();
-            collection.set_default_font_manager(FontMgr::new(), None);
+            collection.set_default_font_manager(FontMgr::new(), Some("_default"));
             collection.set_asset_font_manager(Some(dynamic.into()));
             self.collection_cache.insert(key, collection.clone());
             return collection
@@ -615,43 +615,6 @@ impl FontLibrary{
 //
 // Javascript Methods
 //
-
-// pub fn get_families(mut cx: FunctionContext) -> JsResult<JsArray> {
-//   let library = FONT_LIBRARY.lock().unwrap();
-//   let families = library.families();
-//   let names = strings_to_array(&mut cx, &families)?;
-//   Ok(names)
-// }
-
-// pub fn has(mut cx: FunctionContext) -> JsResult<JsBoolean> {
-//   let library = FONT_LIBRARY.lock().unwrap();
-//   let family = string_arg(&mut cx, 1, "familyName")?;
-//   let found = library.families().contains(&family);
-//   Ok(cx.boolean(found))
-// }
-
-// pub fn family(mut cx: FunctionContext) -> JsResult<JsValue> {
-//   let library = FONT_LIBRARY.lock().unwrap();
-//   let family = string_arg(&mut cx, 1, "familyName")?;
-//   let (weights, widths, styles) = library.family_details(&family);
-
-//   if weights.is_empty() {
-//     return Ok(cx.undefined().upcast())
-//   }
-
-//   let name = cx.string(family);
-//   let weights = floats_to_array(&mut cx, &weights)?;
-//   let widths = strings_to_array(&mut cx, &widths)?;
-//   let styles = strings_to_array(&mut cx, &styles)?;
-
-//   let details = JsObject::new(&mut cx);
-//   let attr = cx.string("family"); details.set(&mut cx, attr, name)?;
-//   let attr = cx.string("weights"); details.set(&mut cx, attr, weights)?;
-//   let attr = cx.string("widths"); details.set(&mut cx, attr, widths)?;
-//   let attr = cx.string("styles"); details.set(&mut cx, attr, styles)?;
-
-//   Ok(details.upcast())
-// }
 
 #[no_mangle]
 pub unsafe extern "C" fn add_font_family(fontBuf: *mut JsBuffer, alias: *mut c_char) {

@@ -67,10 +67,10 @@ export class KImage extends Raw {
         width = image.width;
         height = image.height;
       }
-      canvas.width = width;
+      canvas.width = width
       canvas.height = height;
       if(context) {
-        context.drawImage(image, 0, 0);
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
         const base64 = canvas.toDataURL('image/png');
         const jsbuff = createJsBufferFromBase64(base64);
         const img = new KImage();

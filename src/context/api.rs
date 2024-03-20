@@ -37,7 +37,9 @@ pub extern "C" fn new_context(canvas: *mut Canvas) -> *mut Context2D {
   unsafe {
     let mut cx = Box::new(Context2D::new(Box::from_raw(canvas)));
     cx.reset_size(((*canvas).width, (*canvas).height));
-    Box::into_raw(cx)
+    let ptr = Box::into_raw(cx);
+    (*canvas).ctx = ptr;
+    ptr
   }
 }
 
@@ -66,6 +68,7 @@ pub extern "C" fn set_size(cx: *mut Context2D, arr: *mut JsF32Array) {
     }
   }
 }
+// 会重置context，等于new frame
 #[no_mangle]
 pub extern "C" fn reset(cx: *mut Context2D) {
   unsafe {
@@ -701,7 +704,7 @@ fn _drawImage(cx: *mut Context2D, image: Option<SkImage>, arr: *mut JsF32Array) 
 #[no_mangle]
 pub extern "C" fn get_image(cx: *mut Context2D) -> *mut Image {
   unsafe {
-    Box::into_raw(Box::new(Image{ image: (*cx).get_image()}))
+    Box::into_raw(Box::new(Image{ image: (*cx).get_image(None)}))
   }
 }
 
@@ -715,7 +718,7 @@ pub extern "C" fn drawImage(cx: *mut Context2D, image: *mut Image, arr: *mut JsF
 #[no_mangle]
 pub extern "C" fn drawImageFromContext(cx: *mut Context2D, context: *mut Context2D, arr: *mut JsF32Array) {
   unsafe {
-    _drawImage(cx, (*context).get_image(), arr)
+    _drawImage(cx, (*context).get_image(None), arr)
   }
 }
 
@@ -739,7 +742,7 @@ pub extern "C" fn drawCanvas(cx: *mut Context2D, ctx: *mut Context2D, arr: *mut 
     let nums = (*arr).as_slice();
     match _layout_rects(width, height, &nums){
       Some((src, dst)) => {
-        let pict = (*ctx).get_picture();
+        let pict = (*ctx).get_picture(None);
         (*cx).draw_picture(&pict, &src, &dst);
       },
       None => panic!("Expected 2, 4, or 8 coordinates (got {})", nums.len())

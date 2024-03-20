@@ -88,7 +88,7 @@
 import * as canvasWasm from "../dist/index.js";
 
 function testDrawText(canvas, context) {
-   canvas.loadFont("./NotoSansTC-Regular.ttf", 'NotoSansTC').then(()=> {
+   canvas.loadFonts("NotoSansTC", ["./NotoSansTC-Regular.ttf"]).then(()=> {
     context.fillStyle = '#0000ff';
     context.font = 'italic bold 28px NotoSansTC';
     context.drawRichText("中文中文", 100, 100, 200);
@@ -108,7 +108,7 @@ function testDrawRect(context) {
   context.fillRect(0, 0, 300, 300);
 }
 
-function testDrawLine(context) {
+function testDrawLine(context, Path2D) {
   context.lineWidth = 10;
   context.strokeStyle = "blue";
   context.moveTo(0, 0);
@@ -116,7 +116,8 @@ function testDrawLine(context) {
   context.stroke();
 }
 
-function testPath2D() {
+function testPath2D(context, Path2D) {
+  const path = new Path2D();
   context.lineWidth = 4;
   context.strokeStyle = "blue";
   path.moveTo(180, 90);
@@ -125,7 +126,7 @@ function testPath2D() {
 }
 
 function testMeasureText(canvas, context) {
-  canvas.loadFont("./NotoSansTC-Regular.ttf", 'NotoSansTC').then(()=> {
+  canvas.loadFonts("NotoSansTC", ["./NotoSansTC-Regular.ttf"]).then(()=> {
     context.fillStyle = '#0000ff';
     context.font = 'italic bold 28px NotoSansTC';
     const result = context.measureText("中文中文");
@@ -139,6 +140,10 @@ canvasWasm.initWasmBridge().then((RustSkia)=> {
   canvasWasm.initCanvas(el).then((canvas)=> {
     const context = canvas.getContext('2d');
     testMeasureText(canvas, context);
+    canvas.flush();
+    testPath2D(context, canvasWasm.Path2D);
+    canvas.flush();
+    testDrawLine(context, canvasWasm.Path2D);
     canvas.flush();
   });
 });

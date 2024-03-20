@@ -36,20 +36,13 @@ use self::recorder::Recorder;
 const BLACK:Color = Color::BLACK;
 const TRANSPARENT:Color = Color::TRANSPARENT;
 
-// pub type BoxedContext2D = JsBox<RefCell<Context2D>>;
-pub type BoxedContext2D = RefCell<Context2D>;
-// impl Finalize for Context2D {}
-unsafe impl Send for Context2D {
-  // PictureRecorder is non-threadsafe
-}
-
 pub struct Context2D{
   pub bounds: Rect,
   recorder: RefCell<Recorder>,
   state: CanvasState,
   stack: Vec<CanvasState>,
   path: Path,
-  canvas: Box<Canvas>
+  pub canvas: Box<Canvas>
 }
 
 #[derive(Clone)]
@@ -159,7 +152,7 @@ impl CanvasState{
 
 impl Context2D{
   pub fn new(canvas: Box<Canvas>) -> Self {
-    let bounds = Rect::from_wh(500.0, 500.0);
+    let bounds = Rect::from_wh(300.0, 150.0);
 
     Context2D{
       canvas,
@@ -437,12 +430,12 @@ impl Context2D{
     }
   }
 
-  pub fn get_image(&mut self) -> Option<Image> { 
-    self.recorder.get_mut().get_image()
+  pub fn get_image(&mut self, matte: Option<Color>) -> Option<Image> { 
+    self.recorder.get_mut().get_image(matte)
   }
 
-  pub fn get_picture(&mut self) -> Option<Picture> {
-    self.recorder.get_mut().get_picture()
+  pub fn get_picture(&mut self,  matte:Option<Color>) -> Option<Picture> {
+    self.recorder.get_mut().get_picture(matte)
   }
 
   pub fn get_pixels(&mut self, buffer: &mut [u8], origin: impl Into<IPoint>, size: impl Into<ISize>){
@@ -450,7 +443,7 @@ impl Context2D{
     let size = size.into();
     let info = ImageInfo::new(size, ColorType::RGBA8888, AlphaType::Unpremul, None);
 
-    if let Some(img) = self.get_image(){
+    if let Some(img) = self.get_image(None){
       img.read_pixels(&info, buffer, info.min_row_bytes(), origin, CachingHint::Allow);
     }
   }

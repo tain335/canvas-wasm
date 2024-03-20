@@ -18,7 +18,7 @@ type CanvasPatternPtr = Ptr;
 type CanvasTexturePtr = Ptr;
 
 interface WasmBridge extends EmscriptenModule {
-  _new_canvas(surface: SurfacePtr): CanvasPtr;
+  _new_canvas(surface: SurfacePtr, width: number, height: number): CanvasPtr;
   _new_context(canvas: CanvasPtr): Context2DPtr;
   _init_surface(width: number, height: number): SurfacePtr;
   _resize_surface(surfacePtr: SurfacePtr, width: number, height: number);
@@ -214,7 +214,13 @@ interface WasmBridge extends EmscriptenModule {
 
   _get_image(cx: Context2DPtr): ImagePtr;
 
+  _canvas_set_width(canvasPtr: CanvasPtr, width: number);
+  _canvas_set_height(canvasPtr: CanvasPtr, height: number);
+  _canvas_get_width(canvasPtr): number;
+  _canvas_get_height(canvasPtr): number;
+  _canvas_save_as(canvasPtr, format: StringPtr, quality: number, density: number, matte: StringPtr): JsBufferPtr;
+
   ready: Promise<void>
 }
 
-declare let createRustSkiaModule: ()=> Promise<RustSkia>
+declare let createCanvasWasmModule: ()=> Promise<WasmBridge>

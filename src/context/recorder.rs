@@ -56,8 +56,8 @@ impl Recorder {
     self.restore();
   }
 
-  pub fn get_image(&mut self) -> Option<SkImage>{
-    if let Some(pict) = self.get_picture() {
+  pub fn get_image(&mut self, matte: Option<Color>) -> Option<SkImage>{
+    if let Some(pict) = self.get_picture(matte) {
       let size = self.bounds.size().to_floor();
       SkImage::from_picture(pict, size, None, None, skia_safe::image::BitDepth::U8, Some(ColorSpace::new_srgb()))
     } else {
@@ -65,9 +65,16 @@ impl Recorder {
     }
   }
 
-  pub fn get_picture(&mut self) -> Option<Picture> {
-    let pic = self.current.finish_recording_as_picture(Some(&self.bounds));
-    pic
+  pub fn get_picture(&mut self, matte: Option<Color>) -> Option<Picture> {
+    let mut compositor = PictureRecorder::new();
+    compositor.begin_recording(self.bounds, None);
+    if let Some(output) = compositor.recording_canvas() {
+      matte.map(|c| output.clear(c));
+      if let Some(pic) = self.current.finish_recording_as_picture(Some(&self.bounds)) {
+        pic.playback(output);
+      }
+    }
+    compositor.finish_recording_as_picture(Some(&self.bounds))
   }
 
 }

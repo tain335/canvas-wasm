@@ -1,8 +1,8 @@
-use skia_safe::{gpu::{gl::FramebufferInfo, BackendRenderTarget, DirectContext}, Point, Surface};
+use skia_safe::{gpu::{gl::FramebufferInfo, BackendRenderTarget, DirectContext}, Budgeted, ImageInfo, Point, Surface};
 
 use crate::context::{api::reset, Context2D};
 
-struct GpuState {
+pub struct GpuState {
   context: DirectContext,
   framebuffer_info: FramebufferInfo,
 }
@@ -13,7 +13,7 @@ struct GpuState {
 /// structures are not thread safe, so a state must not be shared between different Web Workers.
 pub struct SurfaceState {
   gpu_state: GpuState,
-  pub surface: Surface,
+  surface: Surface,
 }
 
 impl SurfaceState {
@@ -21,7 +21,7 @@ impl SurfaceState {
     SurfaceState { gpu_state, surface }
   }
 
-  fn set_surface(&mut self, surface: Surface) {
+  pub fn set_surface(&mut self, surface: Surface) {
       self.surface = surface;
   }
 }
@@ -67,7 +67,6 @@ fn create_surface(gpu_state: &mut GpuState, width: i32, height: i32) -> Surface 
   .unwrap()
 }
 
-
 /// Initialize the renderer.
 ///
 /// This is called from JS after the WebGL context has been created.
@@ -93,7 +92,7 @@ pub extern "C" fn resize_surface(state: *mut SurfaceState, width: i32, height: i
 #[no_mangle]
 pub extern "C" fn render_to_surface(state: *mut SurfaceState, cx: *mut Context2D) {
   unsafe {
-    if let Some(picture) = (*cx).get_image() {
+    if let Some(picture) = (*cx).get_image(None) {
       (*state).surface.canvas().draw_image(picture, Point{x: 0.0, y: 0.0}, None);
       (*state).surface.flush();
       reset(cx);

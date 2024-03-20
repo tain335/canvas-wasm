@@ -42,9 +42,10 @@ export class CanvasWasm extends Raw {
     resizeCanvasToDisplaySize(el)
     surfacePtr = this.bridge._init_surface(el.width, el.height);
     this.surfacePtr = surfacePtr;
-    canvasPtr = bridge._new_canvas(surfacePtr);
+    canvasPtr = bridge._new_canvas(surfacePtr, el.width, el.height);
     this.ptr = canvasPtr;
   }
+
   getContext(type: string): Context2D {
     if(type === '2d') {
       if(this.context) {
@@ -57,11 +58,32 @@ export class CanvasWasm extends Raw {
     }
   }
 
+  set width(w: number) {
+    this.bridge._canvas_set_width(this.raw(), w);
+    getWasmBridge()._resize_surface(this.surfacePtr, this.width, this.height);
+  }
+
+  get width() {
+    return this.bridge._canvas_get_width(this.raw());
+  }
+
+  set height(h: number) {
+    this.bridge._canvas_set_width(this.raw(), h);
+    getWasmBridge()._resize_surface(this.surfacePtr, this.width, this.height);
+  }
+
+  get height() {
+    return this.bridge._canvas_get_height(this.raw());
+  }
+
   resize() {
     if (resizeCanvasToDisplaySize(this.el)) {
+      this.width = this.el.width;
+      this.height = this.el.height;
       getWasmBridge()._resize_surface(this.surfacePtr, this.el.width, this.el.height);
     }
   }
+
 
   flush() {
     if(this.context) {
@@ -71,9 +93,31 @@ export class CanvasWasm extends Raw {
     }
   }
 
-  async loadFont(src: string, alias: string): Promise<void> {
-    const buffer = await fetchBuffer(src);
-    this.loadFontFromBuffer(buffer, alias);
+  saveAs(format: 'pdf' | 'png' | 'jpeg', options?: {quality?: number, density?: number, matte?: string}) {
+    if(this.context) {
+      let f = (new JsString(format)).raw();
+      let q = options?.quality ?? 1;
+      let d = options?.density ?? 1;
+      let m = (new JsString(options?.matte ?? '')).raw();
+      let bufPtr = this.bridge._canvas_save_as(this.raw(), f, q, d, m);
+      return JsBuffer.fromPtr(bufPtr).toBuffer();
+    } else {
+      throw new Error('no context');
+    }
+  }
+
+  async loadFonts(alias?: string | string[], sources: string[] = []): Promise<any> {
+    let _alias = '';
+    if(typeof alias !== 'string') {
+      sources = alias ?? [];
+      _alias = '';
+    } else {
+      _alias = alias;
+    }
+    return Promise.all(sources.map(async (src)=> {
+      const buffer = await fetchBuffer(src);
+      this.loadFontFromBuffer(buffer, _alias);
+    }))
   }
 
   loadFontFromBuffer(buf: Uint8Array, alias: string) {
@@ -81,8 +125,7 @@ export class CanvasWasm extends Raw {
     for(let i = 0; i < buf.length; i++) {
       jsbuff.push(buf[i]);
     }
-    const aliasStr =  new JsString(alias);
-    this.bridge._add_font_family(jsbuff.raw(), aliasStr.raw());
+    this.bridge._add_font_family(jsbuff.raw(), alias ? new JsString(alias).raw() : new JsString("_default").raw());
   }
 
   raw(): number {
@@ -92,7 +135,7 @@ export class CanvasWasm extends Raw {
 
 export function initCanvas(el: HTMLCanvasElement): Promise<CanvasWasm> {
   return new Promise((resolve, reject)=> {
-    createRustSkiaModule().then((module) => {
+    createCanvasWasmModule().then((module) => {
       resolve(new CanvasWasm(el))
     }).catch((err)=> {
       reject(err)

@@ -1,9 +1,12 @@
 {
   "name": "canvas-wasm",
   "version": "1.0.0",
-  "description": "## Build and run the example",
-  "main": "index.js",
+  "description": "Canvas Wasm",
+  "module": "dist/module/index.js",
+  "types": "dist/module/index.d.ts",
   "scripts": {
+    "build:js": "npx tsc-esm",
+    "build:rust": "make build_release",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

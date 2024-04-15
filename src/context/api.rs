@@ -246,8 +246,8 @@ pub extern "C" fn roundRect(cx: *mut Context2D, arr: *mut JsF32Array) {
 #[no_mangle]
 pub extern "C" fn arc(cx: *mut Context2D, arr: *mut JsF32Array) {
   unsafe {
-    let nums = &(*arr).as_slice()[1..6];
-    let ccwVal = (*arr).get(6);
+    let nums = &(*arr).as_slice()[0..5];
+    let ccwVal = (*arr).get(5);
     let mut ccw = false;
     if let Some(c) = ccwVal {
       if *c == 1.0 {
@@ -266,8 +266,8 @@ pub extern "C" fn arc(cx: *mut Context2D, arr: *mut JsF32Array) {
 #[no_mangle]
 pub extern "C" fn ellipse(cx: *mut Context2D, arr: *mut JsF32Array) {
   unsafe { 
-    let nums = &(*arr).as_slice()[1..8];
-    let ccwVal = (*arr).get(8);
+    let nums = &(*arr).as_slice()[0..7];
+    let ccwVal = (*arr).get(7);
     let mut ccw = false;
     if let Some(c) = ccwVal {
       if *c == 1.0 {
@@ -311,8 +311,8 @@ pub extern "C" fn lineTo(cx: *mut Context2D, arr: *mut JsF32Array) {
 #[no_mangle]
 pub extern "C" fn arcTo(cx: *mut Context2D, arr: *mut JsF32Array) {
   unsafe {
-    let coords = &(*arr).as_slice()[1..5];
-    let radius = (*arr).get(5);
+    let coords = &(*arr).as_slice()[0..4];
+    let radius = (*arr).get(4);
     if let Some(radius) = radius {
       if let [src, dst] = (*cx).map_points(&coords).as_slice(){
         if (*cx).path.is_empty(){ (*cx).path.move_to(*src); }
@@ -347,8 +347,8 @@ pub extern "C" fn quadraticCurveTo(cx: *mut Context2D, arr: *mut JsF32Array) {
 #[no_mangle]
 pub extern "C" fn conicCurveTo(cx: *mut Context2D, arr: *mut JsF32Array) {
   unsafe {
-    let coords = &(*arr).as_slice()[1..5];
-    let weight = (*arr).get(5);
+    let coords = &(*arr).as_slice()[0..4];
+    let weight = (*arr).get(4);
     if let Some(weight) = weight {
       if let [src, dst] = (*cx).map_points(&coords).as_slice(){
         if (*cx).path.is_empty(){ (*cx).path.move_to((src.x, src.y)); }
@@ -454,7 +454,7 @@ pub extern "C" fn fillRect(cx: *mut Context2D, arr: *mut JsF32Array) {
 #[no_mangle]
 pub extern "C" fn strokeRect(cx: *mut Context2D, arr: *mut JsF32Array) {
   unsafe {
-    let nums = &(*arr).as_slice()[1..5];
+    let nums = &(*arr).as_slice()[0..4];
     if let [x, y, w, h] = nums {
       let rect = Rect::from_xywh(*x, *y, *w, *h);
       let path = Path::rect(rect, None);
@@ -466,7 +466,7 @@ pub extern "C" fn strokeRect(cx: *mut Context2D, arr: *mut JsF32Array) {
 #[no_mangle]
 pub extern "C" fn clearRect(cx: *mut Context2D, arr: *mut JsF32Array) {
   unsafe {
-    let nums = &(*arr).as_slice()[1..5];
+    let nums = &(*arr).as_slice()[0..4];
     if let [x, y, w, h] = nums {
       let rect = Rect::from_xywh(*x, *y, *w, *h);
       (*cx).clear_rect(&rect);

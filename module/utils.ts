@@ -98,7 +98,7 @@ export function parseCornerRadii(r: any){
 }
 
 export function parseVariant(str: string){
-  if (cache.variant[str]===undefined){
+  if (cache.variant[str] === undefined ){
     let variants = [],
         features: any = {on: [], off:[] };
 

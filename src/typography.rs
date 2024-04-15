@@ -3,6 +3,7 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 #![allow(non_snake_case)]
+use std::f32::INFINITY;
 use std::fs;
 use std::ops::Range;
 use std::os::raw::c_char;
@@ -25,6 +26,7 @@ use crate::context::CanvasState;
 //
 
 const GALLEY:f32 = 100_000.0;
+// const GALLEY:f32 = INFINITY;
 
 pub struct Typesetter{
   text: String,
@@ -41,7 +43,7 @@ impl Typesetter{
     let (char_style, mut graf_style, baseline, wrap) = state.typography();
     let typefaces = library.collect_fonts(&char_style);
     let width = width.unwrap_or(GALLEY);
-    let text = match wrap{
+    let text = match wrap {
       true => text.to_string(),
       false => {
         graf_style.set_max_lines(1);
@@ -68,28 +70,28 @@ impl Typesetter{
     Typesetter{text, width, baseline, typefaces, char_style, graf_style}
   }
 
-  pub fn layout(&self, paint:&Paint) -> (Paragraph, Point) {
+  pub fn layout(&mut self, paint:&Paint) -> (Paragraph, Point) {
     let mut char_style = self.char_style.clone();
     char_style.set_foreground_color( &paint.clone() );
-
+    // skia ParagraphCache在某些页面渲染时插入新的entry然后会触发remove，就会进入死循环，所以这里先关闭
+    self.typefaces.paragraph_cache_mut().turn_on(false);
     let mut paragraph_builder = ParagraphBuilder::new(&self.graf_style, &self.typefaces);
     paragraph_builder.push_style(&char_style);
     paragraph_builder.add_text(&self.text);
-
     let mut paragraph = paragraph_builder.build();
+    
     paragraph.layout(self.width);
-
     let metrics = self.char_style.font_metrics();
     let shift = get_baseline_offset(&metrics, self.baseline);
     let offset = (
       self.width * get_alignment_factor(&self.graf_style),
       shift - paragraph.alphabetic_baseline(),
     );
-
+    self.typefaces.paragraph_cache_mut().turn_on(true);
     (paragraph, offset.into())
   }
 
-  pub fn metrics(&self) -> Vec<Vec<f32>>{
+  pub fn metrics(&mut self) -> Vec<Vec<f32>>{
     let (paragraph, _) = self.layout(&Paint::default());
     let font_metrics = self.char_style.font_metrics();
     let offset = get_baseline_offset(&font_metrics, self.baseline);

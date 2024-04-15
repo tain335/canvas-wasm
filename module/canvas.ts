@@ -1,8 +1,9 @@
 import { FinalizeHandler, Raw } from "./finalize";
 import { Context2D } from "./context";
-import { getWasmBridge } from "./registry";
+import { getWasmBridge, registerWasmBridge } from "./registry";
 import { fetchBuffer } from "./utils";
 import { JsBuffer, JsString } from "./jstypes";
+import { debug } from "./logger";
 
 function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement) {
   const width = canvas.clientWidth | 1;
@@ -10,6 +11,7 @@ function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement) {
   if (canvas.width !== width || canvas.height !== height) {
     canvas.width = width;
     canvas.height = height;
+    debug("canvas width: " + width + ", height: " + height);
     return true;
   }
   return false;
@@ -18,7 +20,7 @@ function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement) {
 export class CanvasWasm extends Raw {
   private surfacePtr: SurfacePtr = 0;
   private context?: Context2D;
-  constructor(public el: HTMLCanvasElement) {
+  constructor(public el: HTMLCanvasElement | OffscreenCanvas) {
     let canvasPtr: Ptr;
     let surfacePtr: Ptr;
 
@@ -31,6 +33,7 @@ export class CanvasWasm extends Raw {
       depth: true,
       stencil: true,
       alpha: true,
+      preserveDrawingBuffer: true,
     });
   
     // Register the context with emscripten
@@ -38,8 +41,6 @@ export class CanvasWasm extends Raw {
     const handle = bridge.GL.registerContext(context, { majorVersion: 2 });
     // @ts-ignore
     bridge.GL.makeContextCurrent(handle);
-
-    resizeCanvasToDisplaySize(el)
     surfacePtr = this.bridge._init_surface(el.width, el.height);
     this.surfacePtr = surfacePtr;
     canvasPtr = bridge._new_canvas(surfacePtr, el.width, el.height);
@@ -68,7 +69,7 @@ export class CanvasWasm extends Raw {
   }
 
   set height(h: number) {
-    this.bridge._canvas_set_width(this.raw(), h);
+    this.bridge._canvas_set_height(this.raw(), h);
     getWasmBridge()._resize_surface(this.surfacePtr, this.width, this.height);
   }
 
@@ -77,11 +78,12 @@ export class CanvasWasm extends Raw {
   }
 
   resize() {
-    if (resizeCanvasToDisplaySize(this.el)) {
-      this.width = this.el.width;
-      this.height = this.el.height;
-      getWasmBridge()._resize_surface(this.surfacePtr, this.el.width, this.el.height);
+    if(this.el instanceof HTMLCanvasElement) {
+      resizeCanvasToDisplaySize(this.el);
     }
+    this.width = this.el.width;
+    this.height = this.el.height;
+    getWasmBridge()._resize_surface(this.surfacePtr, this.el.width, this.el.height);
   }
 
 
@@ -131,14 +133,4 @@ export class CanvasWasm extends Raw {
   raw(): number {
     return this.ptr;
   }
-}
-
-export function initCanvas(el: HTMLCanvasElement): Promise<CanvasWasm> {
-  return new Promise((resolve, reject)=> {
-    createCanvasWasmModule().then((module) => {
-      resolve(new CanvasWasm(el))
-    }).catch((err)=> {
-      reject(err)
-    })
-  })
 }

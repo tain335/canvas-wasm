@@ -7,6 +7,7 @@ use std::cell::{Cell, RefCell, RefMut};
 use std::ffi::CStr;
 use std::os::raw::c_char;
 use std::ptr::null;
+use std::rc::Rc;
 use std::sync::{Arc, Mutex, MutexGuard};
 use skia_safe::wrapper::PointerWrapper;
 use skia_safe::{Canvas as SkCanvas, Surface, Paint, Path, PathOp, Image, ImageInfo, Contains,
@@ -485,10 +486,10 @@ impl Context2D{
 
   pub fn draw_text(&mut self, text: &str, x: f32, y: f32, width: Option<f32>, style:PaintStyle){
     let paint = self.paint_for_drawing(style);
-    let typesetter = Typesetter::new(&self.state, text, width);
+    let mut typesetter = RefCell::new(Typesetter::new(&self.state, text, width));
     self.render_to_canvas(&paint, |canvas, paint| {
       let point = Point::new(x, y);
-      let (paragraph, offset) = typesetter.layout(paint);
+      let (paragraph, offset) = typesetter.borrow_mut().layout(paint);
       paragraph.paint(canvas, point + offset);
     });
   }

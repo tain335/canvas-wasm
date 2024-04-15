@@ -39,7 +39,7 @@ impl LastFilter {
   }
 }
 
-impl Default for Filter{
+impl Default for Filter {
   fn default() -> Self {
     Filter{ css:"none".to_string(), specs:vec![], _raster:None, _vector:None }
   }

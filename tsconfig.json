@@ -10,7 +10,7 @@
     "baseUrl": ".",
     "module": "ESNext",
     "allowJs": true,
-    "checkJs": true,
+    "checkJs": false,
     "declaration": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -23,6 +23,6 @@
     "isolatedModules": true,
     "noEmit": false
   },
-  "exclude": ["node_modules"],
-  "include": ["module/**/*.ts"],
+  "exclude": ["node_modules", "release"],
+  "include": ["module/"],
 }

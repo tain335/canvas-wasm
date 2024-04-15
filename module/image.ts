@@ -52,8 +52,6 @@ export class KImage extends Raw {
       const ctx = image.getContext('2d');
       return this.fromPtr(getWasmBridge()._get_image(ctx.raw()))
     } else {
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
       let width = 0;
       let height = 0;
       if(image instanceof VideoFrame) {
@@ -67,11 +65,13 @@ export class KImage extends Raw {
         width = image.width;
         height = image.height;
       }
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d', { willReadFrequently: true });
       canvas.width = width
       canvas.height = height;
       if(context) {
-        context.drawImage(image, 0, 0, canvas.width, canvas.height);
-        const base64 = canvas.toDataURL('image/png');
+        context.drawImage(image, 0, 0);
+        const base64 = canvas.toDataURL('image/png', 1);
         const jsbuff = createJsBufferFromBase64(base64);
         const img = new KImage();
         getWasmBridge()._image_set_data(img.raw(), jsbuff.raw());

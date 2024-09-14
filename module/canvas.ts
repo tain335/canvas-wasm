@@ -2,8 +2,19 @@ import { FinalizeHandler, Raw } from "./finalize";
 import { Context2D } from "./context";
 import { getWasmBridge, registerWasmBridge } from "./registry";
 import { fetchBuffer } from "./utils";
-import { JsBuffer, JsString } from "./jstypes";
+import { JsBuffer, JsF32Array, JsString } from "./jstypes";
 import { debug } from "./logger";
+
+type cuttingOptions = {
+  targetWidth: number;
+  targetHeight: number;
+  targetOffsetLeft: number;
+  targetOffsetTop: number;
+  targetOffsetRight: number;
+  targetOffsetBottom: number;
+  sourceOffset: number;
+}
+
 
 function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement) {
   const width = canvas.clientWidth | 1;
@@ -95,13 +106,26 @@ export class CanvasWasm extends Raw {
     }
   }
 
-  saveAs(format: 'pdf' | 'png' | 'jpeg', options?: {quality?: number, density?: number, matte?: string}) {
+  saveAs(format: 'pdf' | 'png' | 'jpeg', options?: {quality?: number, density?: number, matte?: string, bacground?: string, cuttingOptions?: cuttingOptions}) {
     if(this.context) {
       let f = (new JsString(format)).raw();
       let q = options?.quality ?? 1;
       let d = options?.density ?? 1;
       let m = (new JsString(options?.matte ?? '')).raw();
-      let bufPtr = this.bridge._canvas_save_as(this.raw(), f, q, d, m);
+      let b = (new JsString(options?.bacground ?? '')).raw();
+      let cuttingOptions = new JsF32Array(6);
+      if(options?.cuttingOptions) {
+        cuttingOptions.push(
+          options.cuttingOptions.sourceOffset, 
+          options.cuttingOptions.targetOffsetTop,
+          options.cuttingOptions.targetOffsetRight, 
+          options.cuttingOptions.targetOffsetBottom,
+          options.cuttingOptions.targetOffsetLeft, 
+          options.cuttingOptions.targetWidth,
+          options.cuttingOptions.targetHeight
+        ); 
+      }
+      let bufPtr = this.bridge._canvas_save_as(this.raw(), f, q, d, m, b, cuttingOptions.raw());
       return JsBuffer.fromPtr(bufPtr).toBuffer();
     } else {
       throw new Error('no context');

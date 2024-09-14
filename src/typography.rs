@@ -3,6 +3,7 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 #![allow(non_snake_case)]
+use std::borrow::Borrow;
 use std::f32::INFINITY;
 use std::fs;
 use std::ops::Range;

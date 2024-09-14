@@ -1,4 +1,4 @@
-use skia_safe::{gpu::{gl::FramebufferInfo, BackendRenderTarget, DirectContext}, Budgeted, ImageInfo, Point, Surface};
+use skia_safe::{gpu::{gl::FramebufferInfo, BackendRenderTarget, DirectContext}, Point, Surface};
 
 use crate::context::{api::reset, Context2D};
 

@@ -43,7 +43,8 @@ pub struct Context2D{
   state: CanvasState,
   stack: Vec<CanvasState>,
   path: Path,
-  pub canvas: Box<Canvas>
+  pub canvas: Box<Canvas>,
+  pub picture: Option<Picture>
 }
 
 #[derive(Clone)]
@@ -162,6 +163,7 @@ impl Context2D{
       path: Path::new(),
       stack: vec![],
       state: CanvasState::default(),
+      picture: None
     }
   }
 
@@ -436,7 +438,11 @@ impl Context2D{
   }
 
   pub fn get_picture(&mut self,  matte:Option<Color>) -> Option<Picture> {
-    self.recorder.get_mut().get_picture(matte)
+    if self.picture.is_none() {
+      let mut recorder = self.recorder.borrow_mut();
+      self.picture = recorder.get_picture(matte);
+    } 
+    self.picture.clone()
   }
 
   pub fn get_pixels(&mut self, buffer: &mut [u8], origin: impl Into<IPoint>, size: impl Into<ISize>){

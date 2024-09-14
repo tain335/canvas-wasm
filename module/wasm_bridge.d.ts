@@ -218,7 +218,7 @@ interface WasmBridge extends EmscriptenModule {
   _canvas_set_height(canvasPtr: CanvasPtr, height: number);
   _canvas_get_width(canvasPtr): number;
   _canvas_get_height(canvasPtr): number;
-  _canvas_save_as(canvasPtr, format: StringPtr, quality: number, density: number, matte: StringPtr): JsBufferPtr;
+  _canvas_save_as(canvasPtr, format: StringPtr, quality: number, density: number, matte: StringPtr, bacground: StringPtr, cuttingOptions: JsF32ArrayPtr): JsBufferPtr;
 
   ready: Promise<void>
 }

@@ -33,6 +33,8 @@ export class Context2D extends Raw {
       getWasmBridge()._free(this.ptr);
     }));
     this.ptr = contextPtr;
+    // set defualt font
+    // this.font = getComputedStyle(canvas.el as HTMLElement).font;
   }
   raw(): Context2DPtr {
     return this.ptr;
@@ -315,7 +317,10 @@ export class Context2D extends Raw {
     const fontStyle = styles.fontStyle;
     const spec = new FontSpec();
     spec.setCanonical(f);
-
+    // 默认兜底字体
+    // 因为如果skia识别出一种字体，就不会使用预设的default字体，但是要是识别的字体又没有对应的字体，就会显示不出来
+    // 所以默认多加入兜底字体
+    familes.push("_default");
     spec.setStyle(weightMap[fontWeight] ?? Number(fontWeight), fontWidth as FontWidth, fontStyle as FonSlant);
     spec.setFamiles(...familes);
     spec.setSize(parseFloat(fontSize));
